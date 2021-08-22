@@ -1,0 +1,15 @@
+Package: Proj3Part2
+Title: Part 2 Of Project 3 For Stat 302
+Version: 0.0.0.9000
+Authors@R: 
+    person(given = "Andrey",
+           family = "Risukhin",
+           role = c("aut", "cre"),
+           email = "risuka@cs.uw.edu",
+           comment = c(ORCID = "YOUR-ORCID-ID"))
+Description: This package contains code to satisfy part 2 of project 3 for STAT 302 Summer 2021.
+License: GPL (>= 3)
+Encoding: UTF-8
+LazyData: true
+Roxygen: list(markdown = TRUE)
+RoxygenNote: 7.1.1
