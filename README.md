@@ -5,7 +5,7 @@
 [![R-CMD-check](https://github.com/andreyrisukhin/Proj3Part2/workflows/R-CMD-check/badge.svg)](https://github.com/andreyrisukhin/Proj3Part2/actions)
 <!-- badges: end -->
 
-The goal of Proj3Part2 is to ...
+The goal of Proj3Part2 is to demonstrate rf and figure saving
 
 ## Installation
 
