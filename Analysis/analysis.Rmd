@@ -1,0 +1,42 @@
+---
+title: "analysis"
+author: "Andrey Risukhin"
+date: "8/23/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+### Load Data
+
+```{r}
+my_p_raw <- read.csv()
+my_g_raw <- read.csv()
+```
+
+### Source Code
+
+```{r}
+source()
+```
+
+### Perform Analysis
+
+```{r}
+
+```
+
+### Save Output
+
+```{r}
+# Save the figures into Output -> Figures (relative path "../Output/Figures)
+ggsave(filename = , plot = , height = , width = )
+
+# Save summary statistics (6 of them) into Output -> Results
+saveRDS()
+
+# Save simulation results (90 simulated results, 3 columns for each k, 30 rows each sim) into Output -> Results
+write.csv()
+```
