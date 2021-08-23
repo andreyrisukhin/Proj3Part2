@@ -9,6 +9,17 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+# Load library
+
+```{r}
+library(ggplot2)
+library(dplyr)
+library(class)
+library(randomForest)
+library(tidyverse)
+library(gapminder)
+```
+
 # Load Data
 
 ```{r}
@@ -23,110 +34,6 @@ source("../Code/my_rf_cv.R")
 ```
 
 # Perform Analysis
-
-## T Test
-
-```{r}
-# Get the data
-gap_data <- STAT302package::my_gapminder#$lifeExp
-life_exp_data <- my_gapminder$lifeExp
-# Perform t-tests
-ah_not_60 <- my_t.test(life_exp_data, "two.sided", 60)
-ah_less_60 <- my_t.test(life_exp_data, "less", 60)
-ah_greater_60 <- my_t.test(life_exp_data, "greater", 60)
-```
-The test for the alternate hypothesis being not equal to 60 returns a P-value of `r ah_not_60$p_val`.
-
-The test for the alternate hypothesis being less than 60 returns a P-value of `r ah_less_60$p_val`.
-
-The test for the alternate hypothesis being greater than 60 returns a P-value of `r ah_greater_60$p_val`.
-
-Given an alpha of 0.05, we fail to reject the first and third null hypotheses, and fail to conclude that the mean life expectancy is not equal to 60 or is greater than 60. We are able to reject the second null hypothesis, concluding that the mean life expectancy is less than 60. 
-
-## Linear Model
-
-```{r}
-# Get the data
-gap_data <- STAT302package::my_gapminder#$lifeExp
-# Fit with linear regression
-output <- my_lm(lifeExp ~ gdpPercap + continent, data = gap_data)
-output
-```
-Given this output, we conclude the following:
-
-- The gdpPercap coefficient has the lowest value ("Estimate") and standard error of any coefficients. Therefore, gdpPercap is a feature which does not vary much, and in which a small change strongly affects the model prediction (hence the small coefficient). 
-
-- The hypothesis test associated with the gdpPercap coefficient is a two-sided test, in which we reject the null hypothesis that this coefficient is zero because our P-value is much less than the threshold of 0.05. 
-
-Let us plot the actual and fitted values:
-
-```{r}
-# To get Actual vs. Fitted, you need to multiply X %*% beta. To get beta, use your estimates. To get X, use `model.matrix(FORMULA, DATA)`
-beta <- c(output[[1]], output[[2]], output[[3]], output[[4]], output[[5]], output[[6]])
-X <- model.matrix(lifeExp ~ gdpPercap + continent, data = gap_data)
-fitted <- X %*% beta
-actual <- gap_data$lifeExp
-
-act_vs_fit <- data.frame(actual, fitted, gap_data$continent)
-colnames(act_vs_fit) <- c("actual", "fitted", "continent")
-```
-```{r, fig.width=7, fig.height=5}
-library(dplyr)
-library(ggplot2)
-
-# Plot actual vs fitted, colored by continent
-plot_actual <- ggplot2::ggplot(data = act_vs_fit, aes(x = fitted, y = actual, color = continent)) +
-  geom_point() +
-  labs(title = "Actual vs Predicted Life Expectancy",
-       x = "Life Expectancy From Fitted Model (years)", y = "True Life Expectancy (years)",
-       caption = "Figure 1. Scatterplot of predicted and actual life expectancy, colored by continent.") + 
-  theme_bw(base_size = 16) +
-  theme(plot.title = element_text(hjust = 0.5, face = "bold"),
-        axis.text.x = element_text(angle = 0, hjust = 1, vjust = 1),
-        plot.caption.position = "plot",
-        plot.caption = element_text(hjust = 0))
-
-plot_actual
-```
-The plot gives us insight into the differences between the ground truth for life expectancy, and the life expectancy predicted by the model. We see that for true life expectancy under 70, the model assigns a narrow and inaccurate life expectancy to each continent group. Once the true life expectancy supersedes roughly 70, the model becomes more accurate, increasing the predicted year with each increase in actual year (having a slope of 1). However, in these linear segments the model is only accurate for European and Oceanian life expectancy: it underpredicts by 5 to 10 years for life expectancy in the Americas, by 10 to 20 years in Asia, and never stops predicting 45 to 55 for African life expectancy. There are 8 Asian life expectancies the model seriously overpredicts, the most extreme by 45 years (true value of 60, predicted value of 105).
-
-This suggests a linear model is not complex enough to capture the true relationships within the data.
-
-## my_knn_cv
-This function used Cross-validation and k-nearest neighbors algorithms
-
-```{r}
-# Remove NA in penguins dataset
-penguins_df <- na.omit(palmerpenguins::penguins)
-
-
-# Get the train and cl parameter from the data
-train <- penguins_df[, 3:6]
-cl <- penguins_df$species
-
-# Create a prediction list & error vector
-pred_class <- list()
-cv_err <- vector()
-
-#  Create a for loop  1:10 
-for (j in 1:10) {
-  temp <- my_knn_cv(train, cl, j, 5)
-  pred_class[[j]] <- temp[[1]]
-  cv_err[j] <- temp[[2]]
-}
-
-# Calculate the training error
-train_err <- vector()
-for (i in 1:10) {
-  train_err[i] <- sum(pred_class[[i]] != penguins_df$species) / 
-    length(pred_class[[i]])
-}
-
-# Create a table to hold the results
-compare_err <- cbind.data.frame(cv_err, train_err)
-compare_err
-```
-
 
 ## my_rf_cv
 
@@ -152,7 +59,7 @@ cv_error
 ### Graph the result 
 ```{r fig.height = 6, fig.width = 10}
 df <- data.frame("k" = cv_error[, 1], "mse" = cv_error[, 2])
-ggplot(df, aes(x = k, y = mse, group = k, fill = factor(k))) +
+rf_plot <- ggplot(df, aes(x = k, y = mse, group = k, fill = factor(k))) +
   geom_boxplot() +
   labs(title = "MSE of k-folds", x = "Number of k", y = "MSE", 
        fill = "# of Folds") +
@@ -161,6 +68,8 @@ ggplot(df, aes(x = k, y = mse, group = k, fill = factor(k))) +
   scale_x_continuous(breaks = c(2, 5, 10)) +
   theme(plot.title = element_text(hjust = 0.8),
         legend.title = element_text(hjust = 0.8, size = 12))
+
+rf_plot
 ```
 
 ### Create a table to host the result 
@@ -180,18 +89,16 @@ result_tbl
 Based on the boxplot and table result above, As the k number increase,the mean and the median of mse increases while the the range of mse and the standard deviation decreases. 
 The more folds we  have, in conjunction with the increasing in  iterations of the data, it definitely help the model perform better.
 
-
-
 # Save Output
 
 ```{r}
 # Save the figures into Output -> Figures (relative path "../Output/Figures)
-ggsave(filename = "../Output/Figures/plot_actual.png", plot = plot_actual, height = 5, width = 7)
+ggsave(filename = "../Output/Figures/rf_plot.png", plot = rf_plot, height = 5, width = 7)
 
 # Save summary statistics (6 of them) into Output -> Results
-saveRDS()
+#saveRDS()
 
 # Save simulation results (90 simulated results, 3 columns for each k, 30 rows each sim) into Output -> Results
-write.csv()
+#write.csv()
 ```
 
